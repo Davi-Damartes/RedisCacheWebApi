@@ -1,23 +1,28 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Any;
 using WebApiCaching.Models;
 
 namespace WebApiCaching.Data
 {
     public class AppDbContext : DbContext
     {
-        private readonly IConfiguration _configuration;
-        public AppDbContext(IConfiguration configuration)
-        {
-            _configuration = configuration;
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options) { }
 
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<TimeFutebol>()
+                        .HasMany(t => t.Jogadores)  
+                        .WithOne(j => j.TimeFutebol)  
+                        .HasForeignKey(j => j.TimeFutebolId);
+
+            modelBuilder.Entity<Jogador>()
+                        .HasKey(t => t.Id);
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseNpgsql(_configuration.GetConnectionString("ConnectionString"));
-        }
 
         public DbSet<Jogador> Jogadores { get; set;}
+        public DbSet<TimeFutebol> TimeFutebols { get; set;}
     }
 }
+
