@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using WebApiCaching.Data;
 using WebApiCaching.Models;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace WebApiCaching.Controllers
 {
@@ -44,7 +43,7 @@ namespace WebApiCaching.Controllers
 
     
         [HttpPost]
-        public async Task<IActionResult> AdicionarJogardor([FromBody] Jogador jogador)
+        public async Task<IActionResult> AdicionarJogador([FromBody] Jogador jogador)
         {
             if(jogador == null)
             {
