@@ -18,11 +18,15 @@ namespace WebApiCaching.Data
 
             modelBuilder.Entity<Jogador>()
                         .HasKey(t => t.Id);
+            
+            modelBuilder.Entity<Driver>()
+                        .HasKey(t => t.Id);
         }
 
 
         public DbSet<Jogador> Jogadores { get; set;}
         public DbSet<TimeFutebol> TimeFutebols { get; set;}
+        public DbSet<Driver> Drivers { get; set;}
     }
 }
 
