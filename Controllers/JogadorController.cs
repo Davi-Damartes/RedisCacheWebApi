@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiCaching.Data;
+using WebApiCaching.Dtos;
 using WebApiCaching.Models;
 
 
@@ -10,48 +11,102 @@ namespace WebApiCaching.Controllers
     [ApiController]
     public class JogadorController : ControllerBase
     {
-        private readonly AppDbContext _appDbContext;
+        private readonly AppDbContext _context;
 
         public JogadorController(AppDbContext appDbContext)
         {
-            _appDbContext = appDbContext;
+            _context = appDbContext;
         }
 
 
         [HttpGet]
         public async Task<ActionResult<Jogador>> ObterJogadores( )
         {
-            var result = await _appDbContext.Jogadores.ToListAsync();
+            var jogadores = await _context
+                               .Jogadores
+                               .Include(a => a.TimeFutebol)
+                               .ToListAsync();
 
-            if ( result == null)
+            if (jogadores == null)
                 return NotFound();
 
-            return Ok(result);
+            var jogadoresDto = jogadores.Select(j => new JogadorDto
+            {
+                Id = j.Id,
+                Nome = j.Nome,
+                NumeroCamisa = j.NumeroCamisa,
+                TimeFutebol = j.TimeFutebol == null ? null! : new TimeFutebolDto
+                {
+                    Nome = j.TimeFutebol.Nome,
+                    Descricao = j.TimeFutebol.Descricao,
+                    Classificacao = j.TimeFutebol.Classificacao
+                }}
+            ).ToList();
+
+
+            return Ok(jogadoresDto);
         }
 
   
         [HttpGet("{id}")]
-        public async Task<ActionResult<Jogador>> ObterJogador (int id)
+        public async Task<ActionResult<JogadorDto>> ObterJogador (int id)
         {
-            var result = await _appDbContext.Jogadores.FirstOrDefaultAsync(x => x.Id == id);
+            var jogador = await _context
+                               .Jogadores
+                               .Include(a => a.TimeFutebol)
+                               .FirstOrDefaultAsync(x => x.Id == id);
 
-            if (result == null)
-                return NotFound();
+            if(jogador == null || jogador.TimeFutebol == null)
+            {
+                return NotFound("Jogador não encontrado!");
+            }
 
-            return Ok(result);
+            var jogadorDTO = new JogadorDto
+            {
+                Id = jogador.Id,
+                Nome = jogador.Nome,
+                NumeroCamisa = jogador.NumeroCamisa,
+                TimeFutebol = new TimeFutebolDto
+                {
+                    Nome = jogador.TimeFutebol.Nome,
+                    Descricao = jogador.TimeFutebol.Descricao,
+                    Classificacao = jogador.TimeFutebol.Classificacao
+                }
+            };
+
+
+            return Ok(jogadorDTO);
         }
 
     
         [HttpPost]
-        public async Task<IActionResult> AdicionarJogador([FromBody] Jogador jogador)
+        public async Task<IActionResult> AdicionarJogador(JogadorDto jogadorDto)
         {
-            if(jogador == null)
+            if(jogadorDto == null)
             {
                 return BadRequest();
             }
 
-            await _appDbContext.Jogadores.AddAsync(jogador);
-            await _appDbContext.SaveChangesAsync();
+            var timeFutebol = await _context.TimeFutebols
+                            .FirstOrDefaultAsync(x => x.TimeFutebolId == jogadorDto.TimeFutebolId);
+
+            if (timeFutebol == null)
+            {
+                return NotFound("Time de futebol não encontrado.");
+            }
+
+            var jogador = new Jogador
+            {
+                Id = jogadorDto.Id,
+                Nome = jogadorDto.Nome,
+                NumeroCamisa = jogadorDto.NumeroCamisa,
+                TimeFutebolId = jogadorDto.TimeFutebolId,
+                TimeFutebol = timeFutebol
+            };
+
+
+            await _context.Jogadores.AddAsync(jogador);
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -60,13 +115,13 @@ namespace WebApiCaching.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> ExcluirJogador(int id)
         {
-            var result = await _appDbContext.Jogadores.FirstOrDefaultAsync(x => x.Id == id);
+            var result = await _context.Jogadores.FirstOrDefaultAsync(x => x.Id == id);
 
             if (result == null)
                 return NotFound();
 
-            await _appDbContext.Jogadores.Where(x => x.Id == id).ExecuteDeleteAsync();
-            await _appDbContext.SaveChangesAsync();
+            await _context.Jogadores.Where(x => x.Id == id).ExecuteDeleteAsync();
+            await _context.SaveChangesAsync();
             return Ok(result);
         }
     }
