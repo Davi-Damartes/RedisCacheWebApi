@@ -37,6 +37,25 @@ namespace WebApiCaching.Controllers
                 return NotFound();
 
             return Ok(time);
+        } 
+        
+        [HttpPut("{id}")]
+        public async Task<ActionResult<TimeFutebol>> AtualizarTime(int id, TimeFutebol novoTime)
+        {
+            var time = await _context.TimeFutebols.FirstOrDefaultAsync(x => x.TimeFutebolId == id);
+
+            if (time == null)
+                return NotFound();
+
+            time.Nome = novoTime.Nome;
+            time.Descricao = novoTime.Descricao;
+            time.Classificacao = novoTime.Classificacao;
+            time.Jogadores = novoTime.Jogadores;
+
+
+             _context.TimeFutebols.Update(time);
+            await _context.SaveChangesAsync();
+            return Ok(time);
         }
 
 
