@@ -7,6 +7,6 @@
         public int NumeroCamisa { get; set; }
 
         public int TimeFutebolId { get; set; }
-        public TimeFutebolDto TimeFutebol { get; set; }
+        public TimeFutebolDto? TimeFutebol { get; set; }
     }
 }
