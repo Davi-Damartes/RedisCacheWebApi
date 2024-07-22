@@ -17,9 +17,10 @@ namespace WebApiCaching.Service
         {
             var value = _cacheDb.StringGet(Key);
             if (!string.IsNullOrEmpty(value))
+            {
                 return JsonSerializer.Deserialize<T>(value);
-
-                return default!;
+            }
+            return default!;
         }
 
         public object RemoveData(string Key)
