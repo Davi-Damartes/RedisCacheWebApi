@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WebApiCaching.Data;
+using WebApiCaching.Repository;
 using WebApiCaching.Service;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("ConnectionString"));
 });
 builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddScoped<IJogadorRepository, JogadorRepository>();
+builder.Services.AddScoped<ITimeFutebolRepository, TimeFutebolRepository>();
 
 
 var app = builder.Build();
