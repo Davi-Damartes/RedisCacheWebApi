@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiCaching.Data;
+using WebApiCaching.Dtos;
 using WebApiCaching.Models;
+using WebApiCaching.Repository;
+using WebApiCaching.Service;
 
 
 namespace WebApiCaching.Controllers
@@ -10,80 +13,118 @@ namespace WebApiCaching.Controllers
     [ApiController]
     public class TimeFutebolController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public TimeFutebolController(AppDbContext context)
+        private readonly ITimeFutebolRepository _futebolRepository;
+        private readonly ICacheService _cacheService;
+        public TimeFutebolController(ITimeFutebolRepository futebolRepository,
+                                     ICacheService cacheService)
         {
-            _context = context;
-        }
-
-      
-        [HttpGet]
-        public async Task<ActionResult<List<TimeFutebol>>> ObterTimes( )
-        {
-            var times = await _context.TimeFutebols.ToListAsync();
-
-            if( times == null )
-                return NotFound();
-
-            return Ok(times);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TimeFutebol>> ObterTime(int id)
-        {
-            var time = await _context.TimeFutebols.FirstOrDefaultAsync(x => x.TimeFutebolId == id);
-
-            if (time == null)
-                return NotFound();
-
-            return Ok(time);
-        } 
-        
-        [HttpPut("{id}")]
-        public async Task<ActionResult<TimeFutebol>> AtualizarTime(int id, TimeFutebol novoTime)
-        {
-            var time = await _context.TimeFutebols.FirstOrDefaultAsync(x => x.TimeFutebolId == id);
-
-            if (time == null)
-                return NotFound();
-
-            time.Nome = novoTime.Nome;
-            time.Descricao = novoTime.Descricao;
-            time.Classificacao = novoTime.Classificacao;
-            time.Jogadores = novoTime.Jogadores;
-
-
-             _context.TimeFutebols.Update(time);
-            await _context.SaveChangesAsync();
-            return Ok(time);
+            _futebolRepository = futebolRepository;
+            _cacheService = cacheService;
         }
 
 
-        [HttpPost]
-        public async Task<IActionResult> AdicionarTimeFutebol([FromBody] TimeFutebol timeFutebol)
+        [HttpGet("TimesFutebol")]
+        public async Task<ActionResult<IEnumerable<TimeFutebolDto>>> ObterTimes( )
         {
-            if (timeFutebol == null)
+            var cache = _cacheService.GetData<IEnumerable<TimeFutebolDto>>("Times");
+
+            if(cache != null)
             {
-                return BadRequest();
+                Console.WriteLine("Cache");
+                return Ok(cache);
             }
 
-            await _context.TimeFutebols.AddAsync(timeFutebol);
-            await _context.SaveChangesAsync();
-            return NoContent();
+            var timeFutebolList = await _futebolRepository.ObterTimes();
+
+            var timeFutebolDtos = timeFutebolList.Select(t => new TimeFutebolDto
+            {
+                Nome = t.Nome,
+                Descricao = t.Descricao,
+                Classificacao = t.Classificacao
+            }).ToList();
+
+            var expiryTime = DateTimeOffset.Now.AddSeconds(10);
+            _cacheService.SetData("Times", timeFutebolDtos, expiryTime);
+
+            return Ok(timeFutebolDtos);
         }
 
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> ExcluirTimeFutebol(int id)
+        [HttpGet("TimeFutebol/{id}")]
+        public async Task<ActionResult<TimeFutebolDto>> ObterTime(int id)
         {
-            var time = await _context.TimeFutebols.FirstOrDefaultAsync(x => x.TimeFutebolId == id);
-            if (time == null)
-                return NotFound();
+            var cache = _cacheService.GetData<TimeFutebolDto>($"Time{id}");
 
-            await _context.TimeFutebols.Where(x => x.TimeFutebolId == id).ExecuteDeleteAsync();
-            await _context.SaveChangesAsync();
+            if (cache != null)
+            {
+                Console.WriteLine("Cache");
+                return Ok(cache);
+            }
 
-            return Ok("Produto deletado com Sucesso!");
-        }
+            var time = await _futebolRepository.ObterTime(id);
+
+            if(time == null)
+            {
+                return NotFound("Time não encontrado!");
+            }
+            var timeDto = new TimeFutebolDto
+            {
+                Nome = time.Nome,
+                Classificacao = time.Classificacao,
+                Descricao = time.Descricao,
+            };
+
+            var expiryTime = DateTimeOffset.Now.AddSeconds(10);
+            _cacheService.SetData($"Time{id}", timeDto, expiryTime);
+
+
+            return Ok(timeDto);
+        } 
+        
+        //[HttpPut("{id}")]
+        //public async Task<ActionResult<TimeFutebol>> AtualizarTime(int id, TimeFutebol novoTime)
+        //{
+        //    var time = await _futebolRepository.ObterTime(id);
+
+        //    if (time == null)
+        //        return NotFound();
+
+        //    time.Nome = novoTime.Nome;
+        //    time.Descricao = novoTime.Descricao;
+        //    time.Classificacao = novoTime.Classificacao;
+        //    time.Jogadores = novoTime.Jogadores;
+
+
+        //     _context.TimeFutebols.Update(time);
+        //    await _context.SaveChangesAsync();
+        //    return Ok(time);
+        //}
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> AdicionarTimeFutebol([FromBody] TimeFutebol timeFutebol)
+        //{
+        //    if (timeFutebol == null)
+        //    {
+        //        return BadRequest();
+        //    }
+
+        //    await _context.TimeFutebols.AddAsync(timeFutebol);
+        //    await _context.SaveChangesAsync();
+        //    return NoContent();
+        //}
+
+
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> ExcluirTimeFutebol(int id)
+        //{
+        //    var time = await _context.TimeFutebols.FirstOrDefaultAsync(x => x.TimeFutebolId == id);
+        //    if (time == null)
+        //        return NotFound();
+
+        //    await _context.TimeFutebols.Where(x => x.TimeFutebolId == id).ExecuteDeleteAsync();
+        //    await _context.SaveChangesAsync();
+
+        //    return Ok("Produto deletado com Sucesso!");
+        //}
     }
 }
