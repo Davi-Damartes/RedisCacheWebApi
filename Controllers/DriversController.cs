@@ -41,6 +41,26 @@ namespace WebApiCaching.Controllers
             Console.WriteLine("Banco de Dados");
             return Ok(cacheData);
 
+        } 
+        
+        [HttpGet("drivers{id:int}")]
+        public async Task<IActionResult> ObterUsers(int id)
+        {
+            var cacheData = _cacheService.GetData<Driver>("drivers");
+
+            if(cacheData != null)
+            {
+                Console.WriteLine("Cache!");
+                return Ok(cacheData);
+            }
+
+            cacheData = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == id);
+
+            var expiryTime = DateTimeOffset.Now.AddSeconds(10);
+            _cacheService.SetData("drivers", cacheData, expiryTime);
+            Console.WriteLine("Banco de Dados");
+            return Ok(cacheData);
+
         }
 
         [HttpPost("AddDriver")]
