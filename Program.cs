@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WebApiCaching.Data;
-using WebApiCaching.Repository;
+using WebApiCaching.Repository.JogadorRepositories;
+using WebApiCaching.Repository.TimeFutRepositories;
 using WebApiCaching.Service;
 
 var builder = WebApplication.CreateBuilder(args);
