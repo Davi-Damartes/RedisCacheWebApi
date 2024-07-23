@@ -2,8 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using WebApiCaching.Data;
 using WebApiCaching.Dtos;
+using WebApiCaching.MappingEntity;
 using WebApiCaching.Models;
-using WebApiCaching.Repository;
+using WebApiCaching.Repository.JogadorRepositories;
+using WebApiCaching.Repository.TimeFutRepositories;
 using WebApiCaching.Service;
 
 
@@ -14,15 +16,16 @@ namespace WebApiCaching.Controllers
     public class JogadorController : ControllerBase
     {
         private readonly IJogadorRepository _jogadorRepository;
-        private readonly AppDbContext _context;
+        private readonly ITimeFutebolRepository _futebolRepository;
         private readonly ICacheService _cacheService;
 
         public JogadorController(IJogadorRepository jogadorRepository,
+                                 ITimeFutebolRepository futebolRepository,
                                  AppDbContext context,
                                  ICacheService cacheService)
         {
             _jogadorRepository = jogadorRepository;
-            _context = context;
+            _futebolRepository = futebolRepository;
             _cacheService = cacheService;
         }
 
@@ -59,9 +62,9 @@ namespace WebApiCaching.Controllers
                 }
             }).ToList();
 
-            var expiryTime = DateTimeOffset.Now.AddSeconds(60);
+            var expiryTime = DateTimeOffset.Now.AddSeconds(15);
             _cacheService.SetData("jogadores", jogadoresDto, expiryTime);
-
+            
             return Ok(jogadoresDto);
         }
 
@@ -78,26 +81,17 @@ namespace WebApiCaching.Controllers
             }
 
             var jogador = await _jogadorRepository.ObterJogador(id);
+            var time = await _futebolRepository.ObterTime(jogador.TimeFutebolId);
 
-            if (jogador == null)
+            if (jogador == null || time == null)
             {
-                return NotFound("Jogador não encontrado!");
+                return NotFound("Erro ao buscar Jogador!");
             }
 
-            var jogadorDto = new JogadorDto
-            {
-                Id = jogador.Id,
-                Nome = jogador.Nome,
-                NumeroCamisa = jogador.NumeroCamisa,
-                TimeFutebol = jogador.TimeFutebol == null ? null : new TimeFutebolDto
-                {
-                    Nome = jogador.TimeFutebol.Nome,
-                    Descricao = jogador.TimeFutebol.Descricao,
-                    Classificacao = jogador.TimeFutebol.Classificacao
-                }
-            };
 
-            var expiryTime = DateTimeOffset.Now.AddMinutes(60);
+            var jogadorDto = jogador.ConverterJogadorParaJogadorDto(time);
+
+            var expiryTime = DateTimeOffset.Now.AddSeconds(15);
             _cacheService.SetData($"Jogador{id}", jogadorDto, expiryTime);
 
             return Ok(jogadorDto);
@@ -112,27 +106,12 @@ namespace WebApiCaching.Controllers
                 return BadRequest();
             }
 
-            var timeFutebol = await _context.TimeFutebols
-                            .FirstOrDefaultAsync(x => x.TimeFutebolId == jogadorDto.TimeFutebolId);
-
-            if (timeFutebol == null)
-            {
-                return NotFound("Time de futebol não encontrado.");
-            }
-
-            var jogador = new Jogador
-            {
-                Id = jogadorDto.Id,
-                Nome = jogadorDto.Nome,
-                NumeroCamisa = jogadorDto.NumeroCamisa,
-                TimeFutebolId = jogadorDto.TimeFutebolId,
-                TimeFutebol = timeFutebol
-            };
+            var jogador = jogadorDto.ConverterJogadorETimeDtoParaJogador();
 
             var sucesso = await _jogadorRepository.AddJogador(jogador);
-            var expiryTime = DateTimeOffset.Now.AddSeconds(60);
+            var expiryTime = DateTimeOffset.Now.AddSeconds(15);
 
-            _cacheService.SetData<JogadorDto>($"Jogador{jogadorDto.Id}", jogadorDto, expiryTime);
+            _cacheService.SetData($"Jogador{jogadorDto.Id}", jogadorDto, expiryTime);
 
             return sucesso ?
                 Ok("Jogador Adicionado com Sucesso!") :
@@ -149,6 +128,25 @@ namespace WebApiCaching.Controllers
                 return NotFound();
 
             _cacheService.RemoveData($"Jogador{id}");
+
+            var jogadores = await _jogadorRepository.ObterJogadores();
+
+            var jogadoresDto = jogadores.Select(j => new JogadorDto
+            {
+                Id = j.Id,
+                Nome = j.Nome,
+                NumeroCamisa = j.NumeroCamisa,
+                TimeFutebol = j.TimeFutebol == null ? null : new TimeFutebolDto
+                {
+                    Nome = j.TimeFutebol.Nome,
+                    Descricao = j.TimeFutebol.Descricao,
+                    Classificacao = j.TimeFutebol.Classificacao
+                }
+            }).ToList();
+
+            var expiryTime = DateTimeOffset.Now.AddSeconds(15);
+            _cacheService.SetData("jogadores", jogadoresDto, expiryTime);
+
             return Ok("Jogador Excluido com Sucesso!");
         }
     }
