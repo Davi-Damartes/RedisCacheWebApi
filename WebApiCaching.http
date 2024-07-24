@@ -1,20 +1,13 @@
-# @WebApiCaching_HostAddress = http://localhost:5148
 @WebApiCaching_HostAddress = https://localhost:7002
 
-GET {{WebApiCaching_HostAddress}}/api/Jogador/
+GET {{WebApiCaching_HostAddress}}/api/Jogador/BuscarJogadores/
 Accept: application/json
 
 ###
-GET {{WebApiCaching_HostAddress}}/api/Jogador/1
-Accept: application/json
-###
-GET {{WebApiCaching_HostAddress}}/api/Jogador/2
+GET {{WebApiCaching_HostAddress}}/api/Jogador/BuscarJogadorId/11
 Accept: application/json
 ###
 
-GET {{WebApiCaching_HostAddress}}/api/Jogador/4
-Accept: application/json
-###
-DELETE {{WebApiCaching_HostAddress}}/api/Jogador/15
+DELETE {{WebApiCaching_HostAddress}}/api/Jogador/DeletarJogadorId/11
 Accept: application/json
 ###
