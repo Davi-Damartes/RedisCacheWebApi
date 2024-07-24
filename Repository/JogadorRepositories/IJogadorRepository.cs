@@ -12,7 +12,7 @@ namespace WebApiCaching.Repository.JogadorRepositories
 
         Task<Jogador> TransferirJogador(int Id, int TimeId);
 
-        Task<bool> ExcluirJogador(int Id);
+        Task<bool> ExcluirJogador(Jogador jogador);
 
     }
 }
