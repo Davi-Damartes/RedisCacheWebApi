@@ -5,52 +5,61 @@ namespace WebApiCaching.MappingEntity
 {
     public static class MappingJogador
     {
-        public static Jogador ConverterJogadorDtoParaJogador(this JogadorDto jogadorDto)
+        public static Jogador ConverterJogadorETimeDtoParaJogador(this JogadorDto jogadoraddDto, TimeFutebol timeFutebol)
         {
             return new Jogador
             {
-                Id = jogadorDto.Id,
-                Nome = jogadorDto.Nome,
-                NumeroCamisa = jogadorDto.NumeroCamisa,
-                //TimeFutebolId = jogadorDto.TimeFutebolId,
-                TimeFutebol = new TimeFutebol
+                Id = jogadoraddDto.Id,
+                Nome = jogadoraddDto.NomeJogador,
+                TimeFutebolId = jogadoraddDto.TimeFutebolId,
+                NumeroCamisa = jogadoraddDto.NumeroCamisa,
+                Time = new TimeFutebol
                 {
-                    TimeFutebolId = jogadorDto.TimeFutebol.TimeFutebolId,
-                    Nome = jogadorDto.TimeFutebol.Nome,
-                    Descricao = jogadorDto.TimeFutebol.Descricao,
-                    Classificacao = jogadorDto.TimeFutebol.Classificacao,
+                    Id = timeFutebol.Id,
+                    Nome = timeFutebol.Nome,
+                    Classificacao = timeFutebol.Classificacao,
                     Jogadores = null
                 }
             };
         }
-         public static Jogador ConverterJogadorETimeDtoParaJogador(this JogadorDto jogadorDto)
+        
+         public static Jogador ConverterJogadorAddDtoParaJogador(this JogadorAddicionarDto jogadorDto)
         {
             return new Jogador
             {
                 Id = jogadorDto.Id,
-                Nome = jogadorDto.Nome,
+                Nome = jogadorDto.NomeJogador,
                 NumeroCamisa = jogadorDto.NumeroCamisa,
-                //TimeFutebolId = jogadorDto.TimeFutebolId,
-                TimeFutebol = null
+                TimeFutebolId = jogadorDto.TimeFutebolId,
+                Time = null
             };
         }
         
+
         public static JogadorDto ConverterJogadorParaJogadorDto(this Jogador jogador, TimeFutebol time)
         {
             return new JogadorDto
             {
                 Id = jogador.Id,
-                Nome = jogador.Nome,
+                NomeJogador = jogador.Nome,
                 NumeroCamisa = jogador.NumeroCamisa,
-                TimeFutebol = new TimeFutebolDto
-                {
-                    TimeFutebolId = time.TimeFutebolId,
-                    Nome = time.Nome,
-                    Descricao = time.Descricao,
-                    Classificacao = time.Classificacao
-                }
+                TimeFutebolId = time.Id,
+                NomeTime = time.Nome
+
             };
         }
+        public static JogadorDto ConverterJogadorParaJogadorDto(this Jogador jogador)
+        {
+            return new JogadorDto
+            {
+                Id = jogador.Id,
+                NomeJogador = jogador.Nome,
+                NumeroCamisa = jogador.NumeroCamisa,
+                TimeFutebolId = jogador.Time.Id,
+                NomeTime = jogador.Time.Nome
+            };
+        }
+
 
         public static IEnumerable<JogadorDto> ConverterJogadoresParaJogadoresDto(this IEnumerable<Jogador> jogadores)
         {
@@ -58,19 +67,12 @@ namespace WebApiCaching.MappingEntity
                     select new JogadorDto
                     {
                         Id = jogador.Id,
-                        Nome = jogador.Nome,
+                        NomeJogador = jogador.Nome,
                         NumeroCamisa = jogador.NumeroCamisa,
-                        //TimeFutebolId = jogador.TimeFutebol.TimeFutebolId,
-                        TimeFutebol = new TimeFutebolDto
-                        {
-                            TimeFutebolId = jogador.TimeFutebol.TimeFutebolId,
-                            Nome = jogador.TimeFutebol.Nome,
-                            Descricao = jogador.TimeFutebol.Descricao,
-                            Classificacao = jogador.TimeFutebol.Classificacao,
-                            Jogadores = null,
-                        }
-                    });
-                    
+                        TimeFutebolId = jogador.Time.Id,
+                        NomeTime = jogador.Time.Nome
+
+                    });                
         }
     }
 }
