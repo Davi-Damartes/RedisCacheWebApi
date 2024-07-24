@@ -12,14 +12,14 @@ namespace WebApiCaching.Controllers
     [ApiController]
     public class TimeFutebolController : ControllerBase
     {
-        private readonly ITimeFutebolRepository _futebolRepository;
+        private readonly ITimeFutebolRepository _timeFutebolRepository;
         private readonly IJogadorRepository _jogadorRepository;
         private readonly ICacheService _cacheService;
-        public TimeFutebolController(ITimeFutebolRepository futebolRepository,
+        public TimeFutebolController(ITimeFutebolRepository timeFutebolRepository,
                                      IJogadorRepository jogadorRepository,
                                      ICacheService cacheService)
         {
-            _futebolRepository = futebolRepository;
+            _timeFutebolRepository = timeFutebolRepository;
             _jogadorRepository = jogadorRepository;
             _cacheService = cacheService;
         }
@@ -36,7 +36,7 @@ namespace WebApiCaching.Controllers
                 return Ok(cache);
             }
 
-            var timesFutebol = await _futebolRepository.ObterTimes();
+            var timesFutebol = await _timeFutebolRepository.ObterTimes();
 
             var timeFutebolDtos = timesFutebol.ConverterTimesFutParaTimesFutDto();
 
@@ -57,7 +57,7 @@ namespace WebApiCaching.Controllers
                 return Ok(cache);
             }
 
-            var time = await _futebolRepository.ObterTime(id);
+            var time = await _timeFutebolRepository.ObterTime(id);
 
             if(time == null)
             {
@@ -76,13 +76,13 @@ namespace WebApiCaching.Controllers
         [HttpPut("EditarTime/{id}")]
         public async Task<IActionResult> AtualizarTime(int id, TimeFutebolEditDto editarTime)
         {
-            var time = await _futebolRepository.ObterTime(id);
+            var time = await _timeFutebolRepository.ObterTime(id);
             if (time == null)
                 return NotFound("Time não encontrado!");
 
             var timeEditado = editarTime.ConverterTimeFutEditParaTimeFut(time);
 
-            var timeAtualizado = await _futebolRepository.AtualizarTimeFut(timeEditado);
+            var timeAtualizado = await _timeFutebolRepository.AtualizarTimeFut(timeEditado);
             var timeCache = timeAtualizado.ConverterTimeFutParaTimeFutDto();
             var expiryTime = DateTimeOffset.Now.AddMinutes(1);
 
@@ -94,23 +94,31 @@ namespace WebApiCaching.Controllers
 
 
         [HttpPost("AdicionarTime")]
-        public async Task<IActionResult> AdicionarTimeFutebol(TimeFutebolDto timeFutebolDto)
+        public async Task<IActionResult> AdicionarTimeFutebol(TimeFutebolAddDto timeFutebolAddDto)
         {   
-            var timeExiste = await _futebolRepository.ObterTime(timeFutebolDto.TimeFutebolId);
+            var timeExiste = await _timeFutebolRepository.ObterTime(timeFutebolAddDto.TimeFutebolId);
 
             if(timeExiste != null)
             {
                 BadRequest("Time já existe!");
             }
 
-            var timeFutebol = timeFutebolDto.ConverterTimeFutDtoParaTimeFut();
+            var timeFutebol = timeFutebolAddDto.ConverterTimeFutAddParaTimeFut();
 
-            var resultado = await _futebolRepository.AddTime(timeFutebol);
+            var resultado = await _timeFutebolRepository.AddTime(timeFutebol);
 
+            if(resultado == true)
+            {
+                var times = await _timeFutebolRepository.ObterTimes();
 
-            var expiryTime = DateTimeOffset.Now.AddMinutes(1);
-            _cacheService.SetData($"Time{timeFutebolDto.TimeFutebolId}", timeFutebolDto, expiryTime);
+                var timesChache = times.ConverterTimesFutParaTimesFutDto();
+                var timeDtoChache = timeFutebol.ConverterTimeFutParaTimeFutDto();
 
+                var expiryTime = DateTimeOffset.Now.AddMinutes(1);
+                _cacheService.SetData($"Time{timeFutebol.Id}", timeDtoChache, expiryTime);
+                _cacheService.SetData("Times", timesChache, expiryTime);
+            }
+           
             return resultado ? Ok("Time Adicionado com Sucesso!") :
                   BadRequest("Erro ao Adicionar o Time!");
         } 
@@ -119,14 +127,14 @@ namespace WebApiCaching.Controllers
         public async Task<IActionResult> AdicionarJogadorAoTime(int IdTime, int IdJogador)
         {   
             var jogadorExiste = await _jogadorRepository.ObterJogador(IdJogador);
-            var time = await _futebolRepository.ObterTime(IdTime);
+            var time = await _timeFutebolRepository.ObterTime(IdTime);
            
             if(jogadorExiste == null || time == null)
             {
                 BadRequest("Jogador não existe!");
             }
 
-            var resultado = await _futebolRepository.AddJogadorTime(time, jogadorExiste);
+            var resultado = await _timeFutebolRepository.AddJogadorTime(time, jogadorExiste);
 
             return resultado ? Ok("Jogador Adicionado ao Time com Sucesso!") :
                   BadRequest("Erro ao Adicionar Jogador!");
@@ -136,16 +144,16 @@ namespace WebApiCaching.Controllers
         [HttpDelete("ExcluirTimeId/{id}")]
         public async Task<IActionResult> ExcluirTimeFutebol(int id)
         {
-            var time = await _futebolRepository.ObterTime(id);
+            var time = await _timeFutebolRepository.ObterTime(id);
             if (time == null)
                 return NotFound();
 
-            var resultado = await _futebolRepository.ExcluirTime(id);
+            var resultado = await _timeFutebolRepository.ExcluirTime(id);
             if(resultado == true)
             {
                 var jogadoresAtt = await _jogadorRepository.ObterJogadores();
                 var jogadoresAttDto = jogadoresAtt.ConverterJogadoresParaJogadoresDto();
-                var timesAtualizados = await  _futebolRepository.ObterTimes();
+                var timesAtualizados = await  _timeFutebolRepository.ObterTimes();
 
                 _cacheService.RemoveData($"Time{time.Id}");
 
