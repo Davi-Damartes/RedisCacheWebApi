@@ -16,6 +16,7 @@ namespace WebApiCaching.Repository.TimeFutRepositories
         {
             return await _context.TimeFutebols
                                 .Include(x => x.Jogadores)
+                                .OrderBy(x  => x.Id)
                                 .AsNoTracking().ToListAsync();
         }
 
@@ -24,14 +25,15 @@ namespace WebApiCaching.Repository.TimeFutRepositories
             return await _context.TimeFutebols
                                 .Include(x => x.Jogadores)
                                 .AsNoTracking()
-                                .FirstOrDefaultAsync(x => x.TimeFutebolId == id) ?? null!;
+                                .OrderBy(x => x.Id)
+                                .FirstOrDefaultAsync(x => x.Id == id) ?? null!;
 
         }
 
 
         public async Task<bool> AddTime(TimeFutebol timeFutebol)
         {
-            var timeExiste = await ObterTime(timeFutebol.TimeFutebolId);
+            var timeExiste = await ObterTime(timeFutebol.Id);
             if (timeExiste != null)
             {
                 return false;
@@ -44,15 +46,15 @@ namespace WebApiCaching.Repository.TimeFutRepositories
         }
 
 
-        public async Task<bool> AtualizarTimeFut(TimeFutebol timeFutebol)
+        public async Task<TimeFutebol> AtualizarTimeFut(TimeFutebol timeFutebol)
         {
             if(timeFutebol != null)
             {
                 _context.TimeFutebols.Update(timeFutebol);
                 await _context.SaveChangesAsync();
-                return true;
+                return timeFutebol;
             }
-            return false;
+            return default!;
 
         }
 
