@@ -56,8 +56,21 @@ namespace WebApiCaching.MappingEntity
                     
                 }).ToList()
             };
+        }  
+        
+        public static TimeFutebol ConverterTimeFutAddParaTimeFut(this TimeFutebolAddDto timeAdd)
+        {
+            return new TimeFutebol
+            {
+                Id = timeAdd.TimeFutebolId,
+                Nome = timeAdd.Nome,
+                Classificacao = timeAdd.Classificacao,
+                Jogadores = null,
+            };
         } 
         
+
+
         public static IEnumerable<TimeFutebolDto> ConverterTimesFutParaTimesFutDto(this IEnumerable<TimeFutebol> timesFutebol)
         {            
             return (from time in timesFutebol
