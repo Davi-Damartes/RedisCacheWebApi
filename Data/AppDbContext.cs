@@ -13,7 +13,7 @@ namespace WebApiCaching.Data
         {
             modelBuilder.Entity<TimeFutebol>()
                         .HasMany(t => t.Jogadores)  
-                        .WithOne(j => j.TimeFutebol)  
+                        .WithOne(j => j.Time)  
                         .HasForeignKey(j => j.TimeFutebolId);
 
             modelBuilder.Entity<Jogador>()
