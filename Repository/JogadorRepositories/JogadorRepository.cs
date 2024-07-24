@@ -15,7 +15,7 @@ namespace WebApiCaching.Repository.JogadorRepositories
 
         public async Task<Jogador> ObterJogador(int Id)
         {
-            return await _context.Jogadores.Include(x => x.TimeFutebol)
+            return await _context.Jogadores.Include(x => x.Time)
                                            .AsNoTracking()
                                            .FirstOrDefaultAsync(x => x.Id == Id) ?? null!;
 
@@ -23,8 +23,9 @@ namespace WebApiCaching.Repository.JogadorRepositories
 
         public async Task<IEnumerable<Jogador>> ObterJogadores()
         {
-            return await _context.Jogadores.Include(x => x.TimeFutebol)
+            return await _context.Jogadores.Include(x => x.Time)
                                            .AsNoTracking()
+                                           .OrderBy(x => x.Id)  
                                            .ToListAsync();
         }
 
@@ -43,17 +44,12 @@ namespace WebApiCaching.Repository.JogadorRepositories
             return true;
         }
 
-        public async Task<bool> ExcluirJogador(int Id)
+        public async Task<bool> ExcluirJogador(Jogador jogador)
         {
-            var jogadorExistente = await ObterJogador(Id);
-            if (jogadorExistente != null)
-            {
-                _context.Remove(jogadorExistente);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            return false;
+            _context.Remove(jogador);
+            await _context.SaveChangesAsync();
+            return true;
+            
         }
 
         public Task<Jogador> TransferirJogador(int Id, int TimeId)
