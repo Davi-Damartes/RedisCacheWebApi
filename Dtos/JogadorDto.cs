@@ -3,10 +3,18 @@
     public class JogadorDto
     {
         public int Id { get; set; }
-        public string Nome { get; set; } = string.Empty;
+        public string? NomeJogador { get; set; }
         public int NumeroCamisa { get; set; }
+        public string? NomeTime { get; set;}
+        public int TimeFutebolId { get; set; }
 
-        //public int TimeFutebolId { get; set; }
-        public TimeFutebolDto? TimeFutebol { get; set; }
+
+    }
+    public class JogadorAddicionarDto
+    {
+        public int Id { get; set; }
+        public string? NomeJogador { get; set; }
+        public int NumeroCamisa { get; set; }
+        public int TimeFutebolId { get; set; }
     }
 }
