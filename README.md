@@ -21,6 +21,16 @@ O RedisWebApi é um projeto que exemplifica a integração de uma Web API com ca
 
 
 
+
+
+
+
+
+
+
+
+
+
 # Rodando o projeto na seu computador localmente.
 
 Clone o projeto
