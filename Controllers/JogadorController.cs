@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WebApiCaching.Data;
 using WebApiCaching.Dtos;
 using WebApiCaching.MappingEntity;
-using WebApiCaching.Models;
 using WebApiCaching.Repository.JogadorRepositories;
 using WebApiCaching.Repository.TimeFutRepositories;
 using WebApiCaching.Service;
@@ -49,7 +47,7 @@ namespace WebApiCaching.Controllers
 
             var jogadoresDto = jogadores.ConverterJogadoresParaJogadoresDto();
 
-            var expiryTime = DateTimeOffset.Now.AddMinutes(15);
+            var expiryTime = DateTimeOffset.Now.AddSeconds(10);
             _cacheService.SetData("Jogadores", jogadoresDto, expiryTime);
             
             return Ok(jogadoresDto);
@@ -77,7 +75,7 @@ namespace WebApiCaching.Controllers
 
             var jogadorDto = jogador.ConverterJogadorParaJogadorDto();
 
-            var expiryTime = DateTimeOffset.Now.AddMinutes(15);
+            var expiryTime = DateTimeOffset.Now.AddSeconds(10);
             _cacheService.SetData($"Jogador{id}", jogadorDto, expiryTime);
 
             return Ok(jogadorDto);
@@ -102,7 +100,7 @@ namespace WebApiCaching.Controllers
                 var jogadores = await _jogadorRepository.ObterJogadores();
                 var jogadoresDto = jogadores.ConverterJogadoresParaJogadoresDto();
 
-                var expiryTime = DateTimeOffset.Now.AddMinutes(5);
+                var expiryTime = DateTimeOffset.Now.AddSeconds(10);
                 _cacheService.SetData($"Jogador{jogadorAddicionarDto.Id}", jogadorAddicionarDto, expiryTime);
                 _cacheService.SetData("Jogadores", jogadoresDto, expiryTime);
             }
@@ -133,7 +131,7 @@ namespace WebApiCaching.Controllers
 
                 var jogadoresDto = jogadores.ConverterJogadoresParaJogadoresDto();
 
-                var expiryTime = DateTimeOffset.Now.AddMinutes(15);
+                var expiryTime = DateTimeOffset.Now.AddSeconds(10);
                 _cacheService.SetData("Jogadores", jogadoresDto, expiryTime);
             }
 

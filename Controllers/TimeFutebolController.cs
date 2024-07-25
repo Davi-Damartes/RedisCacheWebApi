@@ -40,7 +40,7 @@ namespace WebApiCaching.Controllers
 
             var timeFutebolDtos = timesFutebol.ConverterTimesFutParaTimesFutDto();
 
-            var expiryTime = DateTimeOffset.Now.AddMinutes(10);
+            var expiryTime = DateTimeOffset.Now.AddSeconds(10);
             _cacheService.SetData("Times", timeFutebolDtos, expiryTime);
 
             return Ok(timeFutebolDtos);
@@ -66,7 +66,7 @@ namespace WebApiCaching.Controllers
 
             var timeDto = time.ConverterTimeFutParaTimeFutDto();
 
-            var expiryTime = DateTimeOffset.Now.AddMinutes(1);
+            var expiryTime = DateTimeOffset.Now.AddSeconds(10);
             _cacheService.SetData($"Time{id}", timeDto, expiryTime);
 
 
@@ -84,7 +84,7 @@ namespace WebApiCaching.Controllers
 
             var timeAtualizado = await _timeFutebolRepository.AtualizarTimeFut(timeEditado);
             var timeCache = timeAtualizado.ConverterTimeFutParaTimeFutDto();
-            var expiryTime = DateTimeOffset.Now.AddMinutes(1);
+            var expiryTime = DateTimeOffset.Now.AddSeconds(10);
 
 
             _cacheService.SetData($"Time{timeAtualizado.Id}", timeCache, expiryTime);
@@ -114,7 +114,7 @@ namespace WebApiCaching.Controllers
                 var timesChache = times.ConverterTimesFutParaTimesFutDto();
                 var timeDtoChache = timeFutebol.ConverterTimeFutParaTimeFutDto();
 
-                var expiryTime = DateTimeOffset.Now.AddMinutes(1);
+                var expiryTime = DateTimeOffset.Now.AddSeconds(10);
                 _cacheService.SetData($"Time{timeFutebol.Id}", timeDtoChache, expiryTime);
                 _cacheService.SetData("Times", timesChache, expiryTime);
             }
@@ -157,7 +157,7 @@ namespace WebApiCaching.Controllers
 
                 _cacheService.RemoveData($"Time{time.Id}");
 
-                var expiryTime = DateTimeOffset.Now.AddMinutes(1);
+                var expiryTime = DateTimeOffset.Now.AddSeconds(10);
                 foreach(var jogador in time.Jogadores)
                 {
                     _cacheService.RemoveData($"Jogador{jogador.Id}");
