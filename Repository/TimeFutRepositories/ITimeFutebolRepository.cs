@@ -10,7 +10,7 @@ namespace WebApiCaching.Repository.TimeFutRepositories
         Task<bool> AddTime(TimeFutebol timeFutebol);
 
         Task<TimeFutebol> AtualizarTimeFut(TimeFutebol timeFutebol);
-        Task<bool> AddJogadorTime(TimeFutebol time,Jogador jogador);
+        Task<bool> TransferirJogador(TimeFutebol time,Jogador jogador);
         Task<bool> ExcluirTime(int id);
     }
 }
