@@ -123,7 +123,7 @@ namespace WebApiCaching.Controllers
                   BadRequest("Erro ao Adicionar o Time!");
         } 
         
-        [HttpPost("TransferirJogadorDeTimeTime")]
+        [HttpPut("TransferirJogadorDeTimeTime")]
         public async Task<IActionResult> TransferirJogador(int IdTime, int IdJogador)
         {   
             var jogadorExiste = await _jogadorRepository.ObterJogador(IdJogador);
@@ -131,10 +131,10 @@ namespace WebApiCaching.Controllers
            
             if(jogadorExiste == null || time == null)
             {
-                BadRequest("Jogador não existe!");
+                BadRequest("Erro ao transferir Jogador!");
             }
 
-            var resultado = await _timeFutebolRepository.AddJogadorTime(time, jogadorExiste);
+            var resultado = await _timeFutebolRepository.TransferirJogador(time, jogadorExiste);
 
             return resultado ? Ok("Jogador Adicionado ao Time com Sucesso!") :
                   BadRequest("Erro ao Adicionar Jogador!");
