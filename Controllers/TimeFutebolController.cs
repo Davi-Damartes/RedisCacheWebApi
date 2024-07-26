@@ -123,8 +123,8 @@ namespace WebApiCaching.Controllers
                   BadRequest("Erro ao Adicionar o Time!");
         } 
         
-        [HttpPost("AdicionarJogadorAoTime")]
-        public async Task<IActionResult> AdicionarJogadorAoTime(int IdTime, int IdJogador)
+        [HttpPost("TransferirJogadorDeTimeTime")]
+        public async Task<IActionResult> TransferirJogador(int IdTime, int IdJogador)
         {   
             var jogadorExiste = await _jogadorRepository.ObterJogador(IdJogador);
             var time = await _timeFutebolRepository.ObterTime(IdTime);
