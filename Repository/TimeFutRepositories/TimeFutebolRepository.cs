@@ -58,7 +58,7 @@ namespace WebApiCaching.Repository.TimeFutRepositories
 
         }
 
-        public async Task<bool> AddJogadorTime(TimeFutebol time, Jogador jogador)
+        public async Task<bool> TransferirJogador(TimeFutebol time, Jogador jogador)
         {
             if (!time.Jogadores.Contains(jogador))
             {
